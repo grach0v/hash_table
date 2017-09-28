@@ -1,3 +1,6 @@
+#if !defined Hash_table_class
+#define Hash_table_class
+
 #include <list>
 #include <iostream>
 #include <assert.h>
@@ -17,21 +20,35 @@ class Hash_Tablet
 {
     std::list<Str_pair<T>> tablet [Size];
 
-    size_t hash_func (std::string str);
+    size_t (*hash_func) (std::string);
+    size_t (*hash_func) (char*);
+
+    bool hash_string;
+    bool hash_char;
 
     public:
 
-//    void add_value (std::string key, T value);
+    Hash_Tablet (size_t (*that_hash_func) (std::string));
+    Hash_Tablet (size_t (*that_hash_func) (char*));
 
     T& operator [] (std::string key);
+    T& operator [] (char* key);
+
+    void get_lengths (size_t lengths [Size]) {for (size_t i = 0; i < Size; i++) lengths [i] = tablet [i].size();}
 
 };
 
 template <class T, size_t Size>
+Hash_Tablet <T, Size> :: Hash_Tablet (size_t (*that_hash_func) (std::string)):
+    hash_func (that_hash_func),
+    hash_string (true),
+    hash_char
+{}
+
+template <class T, size_t Size>
 T& Hash_Tablet <T, Size> :: operator [] (std::string key)
 {
-    size_t hash_value = hash_func (key);
-    assert (hash_value < Size);
+    size_t hash_value = hash_func (key) % Size;
 
     for (auto i = tablet[hash_value].begin(); i != tablet[hash_value].end(); ++i)
     {
@@ -41,30 +58,14 @@ T& Hash_Tablet <T, Size> :: operator [] (std::string key)
     tablet[hash_value].push_back (Str_pair<T> (key, 43));
 
     return tablet[hash_value].back().value_;
-
-    //assert (false);
 }
 
 /*
-template <class T, size_t Size>
-void Hash_Tablet <T, Size> :: add_value (std::string key, T value)
-{
-    size_t hash_value = hash_func (key);
-    assert (hash_value < Size);
-    tablet [hash_value].push_back (Str_pair<T> (key, value));
-}
-*/
-
-template <class T, size_t Size>
-size_t Hash_Tablet <T, Size> :: hash_func (std::string str)
-{
-    int sum = 0;
-    for (size_t i = 0; i < str.size(); i++) sum += str [i];
-    return sum % Size;
-}
-
 int main ()
 {
+
+    Hash_Tablet <int, 2> test (hash_func_one);
+
     Hash_Tablet<int, 2> test;
 
     test.add_value ("Denis - 0", 17);
@@ -83,3 +84,6 @@ int main ()
 
     return 0;
 }
+*/
+
+#endif
