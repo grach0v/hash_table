@@ -8,11 +8,22 @@
 //{
 
 size_t hash_one (std::string key) {return 1;}
-size_t hash_0 (std::string key) {return 0;}
+size_t hash_one (char* key) {return 1;}
+
+size_t hash_0 (std::string key) {return key[0];}
+size_t hash_0 (char* key) {return key [0];}
+
 size_t hash_size (std::string key) {return key.size();}
+size_t hash_size (char* key) {return strlen (key);}
+
 size_t hash_sum (std::string key);
+size_t hash_sum (char* key);
+
 size_t hash_bit (std::string key);
+size_t hash_bit (char* key);
+
 size_t hash_gnu (std::string key);
+size_t hash_gnu (char* key);
 
 //}
 //=============================================================================
@@ -22,13 +33,14 @@ double distances (size_t lengths [SIZE], double avarage);
 
 int main()
 {
-    Hash_Tablet <int, SIZE> test_one (hash_one);
-    Hash_Tablet <int, SIZE> test_0 (hash_0);
-    Hash_Tablet <int, SIZE> test_size (hash_size);
-    Hash_Tablet <int, SIZE> test_sum (hash_sum);
-    Hash_Tablet <int, SIZE> test_bit (hash_bit);
-    Hash_Tablet <int, SIZE> test_gnu (hash_gnu);
+    Hash_Tablet <char*, int, SIZE> test_one (hash_one);
+    Hash_Tablet <char*, int, SIZE> test_0 (hash_0);
+    Hash_Tablet <char*, int, SIZE> test_size (hash_size);
+    Hash_Tablet <char*, int, SIZE> test_sum (hash_sum);
+    Hash_Tablet <char*, int, SIZE> test_bit (hash_bit);
+    Hash_Tablet <char*, int, SIZE> test_gnu (hash_gnu);
 
+    /*
     std::string line;
     std::ifstream myfile ("myfile.txt");
 
@@ -51,6 +63,18 @@ int main()
     else std::cout << "Unable to open file";
 
     std::cout << counter;
+    */
+
+    FILE *f = fopen("textfile.txt", "rb");
+    fseek(f, 0, SEEK_END);
+    long fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    char *string = (char *)malloc(fsize + 1);
+    fread(string, fsize, 1, f);
+    fclose(f);
+
+    string[fsize] = 0;
 
     size_t stats_one [SIZE] = {};
     size_t stats_0 [SIZE] = {};
@@ -65,13 +89,6 @@ int main()
     test_sum.get_lengths (stats_sum);
     test_bit.get_lengths (stats_bit);
     test_gnu.get_lengths (stats_gnu);
-
-    std :: cout << "one distance = " << distances (stats_one, counter/SIZE) << "\n";
-    std :: cout << "0 distance = " << distances (stats_0, counter/SIZE) << "\n";
-    std :: cout << "size distance = " << distances (stats_size, counter/SIZE) << "\n";
-    std :: cout << "sum distance = " << distances (stats_sum, counter/SIZE) << "\n";
-    std :: cout << "bit distance = " << distances (stats_bit, counter/SIZE) << "\n";
-    std :: cout << "gnu distance = " << distances (stats_gnu, counter/SIZE) << "\n";
 
     std::ofstream stats;
     stats.open ("stats_one.txt");
@@ -105,12 +122,27 @@ int main()
 //=============================================================================
 //{
 
+//hash_gnu
+//{
+
 size_t hash_gnu (std::string key)
 {
     size_t value = 5381;
     for (size_t i = 0; i < key.size(); i++) value = value*33 + key[i];
     return value;
 }
+
+size_t hash_gnu (char* key)
+{
+    size_t value = 5381;
+    for (size_t i = 0; key [i] != 0; i++) value = value*33 + key[i];
+    return value;
+}
+
+//}
+
+//hash_bit
+//{
 
 size_t hash_bit (std::string key)
 {
@@ -123,11 +155,27 @@ size_t hash_bit (std::string key)
     return value;
 }
 
-double distances (size_t lengths [SIZE], double avarage)
+size_t hash_bit (char* key)
 {
-    double distance = 0;
-    for (size_t i = 0; i < SIZE; i++) distance += (lengths [i] - avarage)*(lengths [i] - avarage);
-    return distance;
+    size_t value = 0;
+    for (size_t i = 0; key[i] != 0; i++)
+    {
+        value = _rotr (value, 1);
+        value = value ^ key[i];
+    }
+    return value;
+}
+
+//}
+
+//hash_sum
+//{
+
+size_t hash_sum (char* key)
+{
+    size_t sum = 0;
+    for (size_t i = 0; key[i] != 0 i++) sum+= key[i];
+    return sum;
 }
 
 size_t hash_sum (std::string key)
@@ -138,6 +186,13 @@ size_t hash_sum (std::string key)
 }
 
 //}
+
+//}
 //=============================================================================
 
-
+double distances (size_t lengths [SIZE], double avarage)
+{
+    double distance = 0;
+    for (size_t i = 0; i < SIZE; i++) distance += (lengths [i] - avarage)*(lengths [i] - avarage);
+    return distance;
+}

@@ -17,7 +17,7 @@ size_t hash_gnu (std::string key);
 //}
 //=============================================================================
 
-const size_t SIZE = 20;
+const size_t SIZE = 5000;
 double distances (size_t lengths [SIZE], double avarage);
 
 int main()
@@ -50,6 +50,8 @@ int main()
 
     else std::cout << "Unable to open file";
 
+    std::cout << counter;
+
     size_t stats_one [SIZE] = {};
     size_t stats_0 [SIZE] = {};
     size_t stats_size [SIZE] = {};
@@ -71,11 +73,31 @@ int main()
     std :: cout << "bit distance = " << distances (stats_bit, counter/SIZE) << "\n";
     std :: cout << "gnu distance = " << distances (stats_gnu, counter/SIZE) << "\n";
 
-    stdofstream myfile;
-    myfile.open ("example.txt");
-    myfile << "Writing this to a file.\n";
-    myfile.close();
-    
+    std::ofstream stats;
+    stats.open ("stats_one.txt");
+    for (size_t i = 0; i < SIZE; i++) stats << i << " " << stats_one [i] << "\n";
+    stats.close();
+
+    stats.open ("stats_0.txt");
+    for (size_t i = 0; i < SIZE; i++) stats << i << " " << stats_0 [i] << "\n";
+    stats.close();
+
+    stats.open ("stats_size.txt");
+    for (size_t i = 0; i < SIZE; i++) stats << i << " " << stats_size [i] << "\n";
+    stats.close();
+
+    stats.open ("stats_sum.txt");
+    for (size_t i = 0; i < SIZE; i++) stats << i << " " << stats_sum [i] << "\n";
+    stats.close();
+
+    stats.open ("stats_bit.txt");
+    for (size_t i = 0; i < SIZE; i++) stats << i << " " << stats_bit [i] << "\n";
+    stats.close();
+
+    stats.open ("stats_gnu.txt");
+    for (size_t i = 0; i < SIZE; i++) stats << i << " " << stats_gnu [i] << "\n";
+    stats.close();
+
     return 0;
 }
 
@@ -88,7 +110,7 @@ size_t hash_gnu (std::string key)
     size_t value = 5381;
     for (size_t i = 0; i < key.size(); i++) value = value*33 + key[i];
     return value;
-}
+}                                                            
 
 size_t hash_bit (std::string key)
 {

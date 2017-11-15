@@ -4,8 +4,10 @@
 #include <list>
 #include <iostream>
 #include <assert.h>
+#include <tuple>
 #include <cstring>
 
+/*
 template <class T>
 struct Str_pair
 {
@@ -14,81 +16,43 @@ struct Str_pair
 
     Str_pair (std::string key, T value): key_ (key), value_ (value) {}
 };
+*/
 
-template <class T, size_t Size>
+template <class TKey, class TValue, size_t Size>
 class Hash_Tablet
 {
-    std::list<Str_pair<T>> tablet [Size];
+    std::list<std::tuple<TKey, TValue>> tablet [Size];
 
-    size_t (*hash_func_str) (std::string);
-    size_t (*hash_func_chr) (char*);
-
-    bool hash_string;
-    bool hash_char;
+    size_t (*hash_func) (TKey);
 
     public:
 
-    Hash_Tablet (size_t (*that_hash_func) (std::string));
-    Hash_Tablet (size_t (*that_hash_func) (char*));
+    Hash_Tablet (size_t (*that_hash_func) (TKey));
 
-    T& operator [] (std::string key);
-    T& operator [] (char* key);
+    TValue& operator [] (TKey key);
 
     void get_lengths (size_t lengths [Size]) {for (size_t i = 0; i < Size; i++) lengths [i] = tablet [i].size();}
 
 };
 
-template <class T, size_t Size>
-Hash_Tablet <T, Size> :: Hash_Tablet (size_t (*that_hash_func) (char*)):
-    hash_func_chr (that_hash_func),
-    hash_string (false),
-    hash_char (true)
+template <class TKey, class TValue, size_t Size>
+Hash_Tablet <TKey, TValue, Size> :: Hash_Tablet (size_t (*that_hash) (TKey)): hash_func (that_hash)
 {}
 
-template <class T, size_t Size>
-Hash_Tablet <T, Size> :: Hash_Tablet (size_t (*that_hash_func) (std::string)):
-    hash_func_str (that_hash_func),
-    hash_string (true),
-    hash_char (false)
-{}
-
-
-template <class T, size_t Size>
-T& Hash_Tablet <T, Size> :: operator [] (char* key)
+template <class TKey, class TValue, size_t Size>
+TValue& Hash_Tablet <TKey, TValue, Size> :: operator [] (TKey key)
 {
-    assert (!hash_string);
-    assert (hash_char);
-
-    size_t hash_value = hash_func_chr (key) % Size;
+    size_t hash_value = hash_func (key) % Size;
 
     for (auto i = tablet[hash_value].begin(); i != tablet[hash_value].end(); ++i)
     {
-       if (strcmp (i->key_, key)) return i->value_;
+       if (std::get<0> (*i) == key) return std::get<1> (*i);
     }
 
-    tablet[hash_value].push_back (Str_pair<T> (key, 43));
-
-    return tablet[hash_value].back().value_;
+    return std::get<1> (tablet[hash_value].back());
 }
 
 
-template <class T, size_t Size>
-T& Hash_Tablet <T, Size> :: operator [] (std::string key)
-{
-    assert (hash_string);
-    assert (!hash_char);
-
-    size_t hash_value = hash_func_str (key) % Size;
-
-    for (auto i = tablet[hash_value].begin(); i != tablet[hash_value].end(); ++i)
-    {
-       if (i->key_ == key) return i->value_;
-    }
-
-    tablet[hash_value].push_back (Str_pair<T> (key, 43));
-
-    return tablet[hash_value].back().value_;
-}
 
 /*
 int main ()
